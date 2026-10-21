@@ -12,6 +12,9 @@ Instructions for coding agents working on this repository.
 
 ## Git commits
 
+- Before creating or amending commits, configure a repository-local Git identity for the current agent; do not rely on or modify the user/system/global Git identity.
+- Set the local identity with `git config --local user.name "<agent>"` and `git config --local user.email "<agent-owned address>"`. If no verified agent-owned address exists, use a non-personal address such as `<agent>@localhost` rather than inventing a public identity.
+- Ensure both the author and committer use the local agent identity. Clear or override any `GIT_AUTHOR_*` or `GIT_COMMITTER_*` environment variables that would supersede it.
 - Add a metadata trailer to each commit message that identifies the LLM agent and model currently in use.
 - Follow the Linux kernel trailer style: put `Tag: value` lines in the trailer block at the end of the commit message, separated from the body by a blank line, one tag per line, with no line wrapping.
 - Use `Assisted-by: <agent>:<model>`, for example `Assisted-by: OpenCode Build Agent:deepseek-v4.1-flash-free`.
