@@ -18,16 +18,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK components
-        run: sdkmanager --install 'platforms;android-37' 'build-tools;37.0.0'
 
       - name: Decode release keystore
         env:
@@ -43,7 +37,7 @@ jobs:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: PLATFORM_JAR="$ANDROID_HOME/platforms/android-37/android.jar" make build
+        run: make build
 
       - name: Remove release keystore
         if: always()
