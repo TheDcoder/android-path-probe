@@ -76,6 +76,35 @@ The app compiles against API 37, targets API 36, and supports API 26+.
 
 The first build creates a local debug signing key at `.keystore/debug.keystore`. It is only for local testing and is gitignored.
 
+### GitHub release signing
+
+GitHub Actions uses one persistent release keystore for every branch and version-tag build. Configure these repository secrets under **Settings > Secrets and variables > Actions** before pushing:
+
+| Secret | Value |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Base64-encoded release keystore file |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Alias of the signing key |
+| `ANDROID_KEY_PASSWORD` | Password of the signing key |
+
+Generate the keystore locally with JDK 17's `keytool` (choose and securely save the passwords when prompted):
+
+```sh
+keytool -genkeypair -v \
+	-keystore pathprobe-release.jks \
+	-storetype PKCS12 \
+	-alias pathprobe \
+	-keyalg RSA -keysize 2048 -validity 10000
+```
+
+Use the alias you chose for `ANDROID_KEY_ALIAS`. The key password may be the same as the keystore password. Encode the file and add its output as `ANDROID_KEYSTORE_BASE64`:
+
+```sh
+base64 pathprobe-release.jks | tr -d '\n'
+```
+
+Never commit the keystore, its passwords, or the Base64 output. Back up the keystore securely; losing it means future APKs cannot be signed with the same identity. The workflow fails instead of falling back to the debug key if the release-signing secrets are missing or incomplete.
+
 ### Make targets
 
 | Command | Action |

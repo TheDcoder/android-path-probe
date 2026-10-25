@@ -113,12 +113,32 @@ build_app() {
 	"$BUILD_TOOLS/zipalign" -f -p 4 "$OUT/unaligned.apk" "$OUT/aligned.apk"
 
 	echo "==> Signing"
-	ensure_keystore
+	if [ -n "${RELEASE_KEYSTORE_PATH:-}" ] || \
+		[ -n "${RELEASE_KEYSTORE_PASSWORD:-}" ] || \
+		[ -n "${RELEASE_KEY_ALIAS:-}" ] || \
+		[ -n "${RELEASE_KEY_PASSWORD:-}" ]; then
+		: "${RELEASE_KEYSTORE_PATH:?RELEASE_KEYSTORE_PATH is required for release signing}"
+		: "${RELEASE_KEYSTORE_PASSWORD:?RELEASE_KEYSTORE_PASSWORD is required for release signing}"
+		: "${RELEASE_KEY_ALIAS:?RELEASE_KEY_ALIAS is required for release signing}"
+		: "${RELEASE_KEY_PASSWORD:?RELEASE_KEY_PASSWORD is required for release signing}"
+		KEYSTORE="$RELEASE_KEYSTORE_PATH"
+		KEY_ALIAS="$RELEASE_KEY_ALIAS"
+		STORE_PASSWORD="$RELEASE_KEYSTORE_PASSWORD"
+		KEY_PASSWORD="$RELEASE_KEY_PASSWORD"
+	else
+		ensure_keystore
+		KEY_ALIAS="androiddebugkey"
+		STORE_PASSWORD="android"
+		KEY_PASSWORD="android"
+	fi
+	require_file "$KEYSTORE"
+	APKSIGNER_KS_PASS="$STORE_PASSWORD" \
+	APKSIGNER_KEY_PASS="$KEY_PASSWORD" \
 	"$BUILD_TOOLS/apksigner" sign \
 		--ks "$KEYSTORE" \
-		--ks-key-alias androiddebugkey \
-		--ks-pass pass:android \
-		--key-pass pass:android \
+		--ks-key-alias "$KEY_ALIAS" \
+		--ks-pass env:APKSIGNER_KS_PASS \
+		--key-pass env:APKSIGNER_KEY_PASS \
 		--min-sdk-version 26 \
 		--out "$OUT/PathProbe.apk" \
 		"$OUT/aligned.apk"
